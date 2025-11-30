@@ -1,0 +1,15 @@
+version: "2"
+
+plugins:
+  - name: dart
+    process:
+      cmd: sqlc_dart
+      format: json
+
+sql:
+  - schema: "schema.sql"
+    queries: "query.sql"
+    engine: "postgresql"
+    codegen:
+      - plugin: dart
+        out: lib/db

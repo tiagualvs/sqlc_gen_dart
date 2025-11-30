@@ -1,0 +1,13 @@
+{
+  "version": "1",
+  "settings": {},
+  "codegen": {
+    "out": "gen",
+    "plugin": "dart",
+    "options": {}
+  },
+  "catalog": {
+    "schemas": []
+  },
+  "queries": []
+}
