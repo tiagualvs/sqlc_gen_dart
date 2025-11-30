@@ -1,5 +1,5 @@
 CREATE TABLE authors (
-    id BIGSERIAL PRIMARY KEY,
-    name text NOT NULL,
-    bio text
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    bio TEXT
 );

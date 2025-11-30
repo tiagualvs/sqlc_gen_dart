@@ -9,7 +9,7 @@ plugins:
 sql:
   - schema: "schema.sql"
     queries: "query.sql"
-    engine: "postgresql"
+    engine: "sqlite"
     codegen:
       - plugin: dart
         out: lib/db
