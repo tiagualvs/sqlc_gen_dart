@@ -3,18 +3,26 @@
 
 part of 'sqlc.dart';
 
-class Authors {
+class User {
   final int id;
   final String name;
-  final String? bio;
+  final String username;
+  final String email;
+  final String password;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
 
-  Authors({required this.id, required this.name, this.bio});
+  User({required this.id, required this.name, required this.username, required this.email, required this.password, this.createdAt, this.updatedAt});
 
-  factory Authors.fromMap(Map<String, dynamic> map) {
-    return Authors(
+  factory User.fromMap(Map<String, dynamic> map) {
+    return User(
       id: map['id'] as int,
       name: map['name'] as String,
-      bio: map['bio'] as String?,
+      username: map['username'] as String,
+      email: map['email'] as String,
+      password: map['password'] as String,
+      createdAt: map['created_at'] != null ? DateTime.parse(map['created_at'] as String) : null,
+      updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at'] as String) : null,
     );
   }
 
@@ -22,9 +30,102 @@ class Authors {
     return {
       'id': id,
       'name': name,
-      'bio': bio,
+      'username': username,
+      'email': email,
+      'password': password,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
     };
   }
 }
 
+class Chat {
+  final int id;
+  final String? name;
+  final String type;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  Chat({required this.id, this.name, required this.type, this.createdAt, this.updatedAt});
+
+  factory Chat.fromMap(Map<String, dynamic> map) {
+    return Chat(
+      id: map['id'] as int,
+      name: map['name'] as String?,
+      type: map['type'] as String,
+      createdAt: map['created_at'] != null ? DateTime.parse(map['created_at'] as String) : null,
+      updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at'] as String) : null,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'type': type,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    };
+  }
+}
+
+class Participant {
+  final int userId;
+  final int chatId;
+  final DateTime? createdAt;
+
+  Participant({required this.userId, required this.chatId, this.createdAt});
+
+  factory Participant.fromMap(Map<String, dynamic> map) {
+    return Participant(
+      userId: map['user_id'] as int,
+      chatId: map['chat_id'] as int,
+      createdAt: map['created_at'] != null ? DateTime.parse(map['created_at'] as String) : null,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'user_id': userId,
+      'chat_id': chatId,
+      'created_at': createdAt?.toIso8601String(),
+    };
+  }
+}
+
+class Message {
+  final int id;
+  final int chatId;
+  final int userId;
+  final String content;
+  final String type;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  Message({required this.id, required this.chatId, required this.userId, required this.content, required this.type, this.createdAt, this.updatedAt});
+
+  factory Message.fromMap(Map<String, dynamic> map) {
+    return Message(
+      id: map['id'] as int,
+      chatId: map['chat_id'] as int,
+      userId: map['user_id'] as int,
+      content: map['content'] as String,
+      type: map['type'] as String,
+      createdAt: map['created_at'] != null ? DateTime.parse(map['created_at'] as String) : null,
+      updatedAt: map['updated_at'] != null ? DateTime.parse(map['updated_at'] as String) : null,
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'chat_id': chatId,
+      'user_id': userId,
+      'content': content,
+      'type': type,
+      'created_at': createdAt?.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
+    };
+  }
+}
 

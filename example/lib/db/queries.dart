@@ -8,79 +8,133 @@ class Queries {
 
   Queries(this._db);
 
-  // GetAuthor
-  static const String getauthorSql = r'''SELECT id, name, bio FROM authors WHERE id = $1 LIMIT 1''';
+  // InsertUser
+  Future<User> insertUser(String name, String username, String email, String password) async {
+    const sql = r'''INSERT INTO
+    users (
+        name,
+        username,
+        email,
+        password
+    )
+VALUES (?, ?, ?, ?)
+RETURNING
+    id, name, username, email, password, created_at, updated_at''';
+    final stmt = _db.prepare(sql);
+    try {
+      final result = stmt.select([name, username, email, password]);
+      if (result.isEmpty) {
+        throw SqlcException('No results found for query insertUser');
+      }
+      final row = result.first;
+      return User.fromMap(row);
+    } catch (e) {
+      if (e is SqlcException) rethrow;
+      throw SqlcException('Error executing query insertUser', e);
+    } finally {
+      stmt.close();
+    }
+  }
 
-  Authors? getauthor(int id) {
-    final stmt = _db.prepare(getauthorSql);
+  // GetUserById
+  Future<User> getUserById(int id) async {
+    const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users WHERE id = ? LIMIT 1''';
+    final stmt = _db.prepare(sql);
     try {
       final result = stmt.select([id]);
-      if (result.isEmpty) return null;
+      if (result.isEmpty) {
+        throw SqlcException('No results found for query getUserById');
+      }
       final row = result.first;
-      return Authors.fromMap(row);
+      return User.fromMap(row);
     } catch (e) {
-      throw SqlcException('Error executing query getauthor', e);
+      if (e is SqlcException) rethrow;
+      throw SqlcException('Error executing query getUserById', e);
     } finally {
       stmt.close();
     }
   }
 
-  // ListAuthors
-  static const String listauthorsSql = r'''SELECT id, name, bio FROM authors ORDER BY name''';
-
-  List<Authors> listauthors() {
+  // GetUserByUsername
+  Future<User> getUserByUsername(String username) async {
+    const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users WHERE username = ? LIMIT 1''';
+    final stmt = _db.prepare(sql);
     try {
-      final result = _db.select(listauthorsSql);
-      return result.map((row) => Authors.fromMap(row)).toList();
-    } catch (e) {
-      throw SqlcException('Error executing query listauthors', e);
-    }
-  }
-
-  // CreateAuthor
-  static const String createauthorSql = r'''INSERT INTO authors (name, bio) VALUES ($1, $2) RETURNING id, name, bio''';
-
-  Authors? createauthor(String name, String? bio) {
-    final stmt = _db.prepare(createauthorSql);
-    try {
-      final result = stmt.select([name, bio]);
-      if (result.isEmpty) return null;
+      final result = stmt.select([username]);
+      if (result.isEmpty) {
+        throw SqlcException('No results found for query getUserByUsername');
+      }
       final row = result.first;
-      return Authors.fromMap(row);
+      return User.fromMap(row);
     } catch (e) {
-      throw SqlcException('Error executing query createauthor', e);
+      if (e is SqlcException) rethrow;
+      throw SqlcException('Error executing query getUserByUsername', e);
     } finally {
       stmt.close();
     }
   }
 
-  // UpdateAuthor
-  static const String updateauthorSql = r'''UPDATE authors set name = $2, bio = $3 WHERE id = $1''';
-
-  void updateauthor(int id, String name, String? bio) {
-    final stmt = _db.prepare(updateauthorSql);
+  // GetUserByEmail
+  Future<User> getUserByEmail(String email) async {
+    const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users WHERE email = ? LIMIT 1''';
+    final stmt = _db.prepare(sql);
     try {
-      stmt.execute([id, name, bio]);
+      final result = stmt.select([email]);
+      if (result.isEmpty) {
+        throw SqlcException('No results found for query getUserByEmail');
+      }
+      final row = result.first;
+      return User.fromMap(row);
     } catch (e) {
-      throw SqlcException('Error executing query updateauthor', e);
+      if (e is SqlcException) rethrow;
+      throw SqlcException('Error executing query getUserByEmail', e);
     } finally {
       stmt.close();
     }
   }
 
-  // DeleteAuthor
-  static const String deleteauthorSql = r'''DELETE FROM authors WHERE id = $1''';
+  // ListUsers
+  Future<List<User>> listUsers() async {
+    const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users ORDER BY name''';
+    try {
+      final result = _db.select(sql);
+      return result.map((row) => User.fromMap(row)).toList();
+    } catch (e) {
+      throw SqlcException('Error executing query listUsers', e);
+    }
+  }
 
-  void deleteauthor(int id) {
-    final stmt = _db.prepare(deleteauthorSql);
+  // UpdateUser
+  Future<void> updateUser(String name, String username, String email, String password, int id) async {
+    const sql = r'''UPDATE users
+set
+    name = ?,
+    username = ?,
+    email = ?,
+    password = ?
+WHERE
+    id = ?''';
+    final stmt = _db.prepare(sql);
+    try {
+      stmt.execute([name, username, email, password, id]);
+    } catch (e) {
+      throw SqlcException('Error executing query updateUser', e);
+    } finally {
+      stmt.close();
+    }
+  }
+
+  // DeleteUser
+  Future<void> deleteUser(int id) async {
+    const sql = r'''DELETE FROM users WHERE id = ?''';
+    final stmt = _db.prepare(sql);
     try {
       stmt.execute([id]);
     } catch (e) {
-      throw SqlcException('Error executing query deleteauthor', e);
+      throw SqlcException('Error executing query deleteUser', e);
     } finally {
       stmt.close();
     }
   }
 
 }
-

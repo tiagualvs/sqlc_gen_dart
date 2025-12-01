@@ -52,4 +52,3 @@ class Sqlc {
   Database get database => _db;
 }
 
-

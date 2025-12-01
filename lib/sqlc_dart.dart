@@ -2,12 +2,18 @@ library;
 
 import 'dart:convert';
 
-Future<String> generateFromSqlcInput(String jsonInput) async {
-  final data = Map<String, dynamic>.from(jsonDecode(jsonInput));
+import 'package:pluralize/pluralize.dart';
+import 'package:strings/strings.dart';
+
+export 'common/sqlc_config.dart';
+export 'common/sqlc_exception.dart';
+
+Future<String> generateFromSqlcInput(String input) async {
+  final data = Map<String, dynamic>.from(jsonDecode(input));
 
   final request = CodeGenRequest.fromJson(data);
 
-  final files = DartCodeGenerator().generate(request);
+  final files = DartCodeGenerator.generate(request);
 
   final response = CodeGenResponse(files: files);
 
@@ -110,7 +116,7 @@ class Column {
   }
 
   String get dartType {
-    final baseType = PostgresTypeToDart.convert(type.name);
+    final baseType = SqlTypeToDart.convert(type.name);
     return notNull ? baseType : '$baseType?';
   }
 }
@@ -183,7 +189,7 @@ class CodeGenResponse {
 // Type Mapping
 // ============================================================================
 
-class PostgresTypeToDart {
+class SqlTypeToDart {
   static const _typeMap = {
     // Integer types
     'bigserial': 'int',
@@ -235,7 +241,12 @@ class PostgresTypeToDart {
   };
 
   static String convert(String postgresType) {
-    return _typeMap[postgresType.toLowerCase()] ?? 'dynamic';
+    for (final key in _typeMap.keys) {
+      if (postgresType.toLowerCase().startsWith(key)) {
+        return _typeMap[key] ?? 'dynamic';
+      }
+    }
+    return 'dynamic';
   }
 }
 
@@ -243,16 +254,16 @@ class PostgresTypeToDart {
 // Code Generators
 // ============================================================================
 
-class DartCodeGenerator {
-  List<GeneratedFile> generate(CodeGenRequest request) {
-    final schemaFile = SchemaGenerator().generate(request.catalog);
-    final queriesFile = QueriesGenerator().generate(request.queries, request.catalog);
+abstract class DartCodeGenerator {
+  static List<GeneratedFile> generate(CodeGenRequest request) {
+    final schemaFile = SchemaGenerator.generate(request.catalog);
+    final queriesFile = QueriesGenerator.generate(request.queries, request.catalog);
     final mainFile = _generateMainFile();
 
     return [mainFile, schemaFile, queriesFile];
   }
 
-  GeneratedFile _generateMainFile() {
+  static GeneratedFile _generateMainFile() {
     final buffer = StringBuffer();
 
     buffer.writeln("// GENERATED CODE - DO NOT MODIFY BY HAND");
@@ -322,8 +333,8 @@ class DartCodeGenerator {
   }
 }
 
-class SchemaGenerator {
-  GeneratedFile generate(Catalog catalog) {
+abstract class SchemaGenerator {
+  static GeneratedFile generate(Catalog catalog) {
     final buffer = StringBuffer();
 
     buffer.writeln("// GENERATED CODE - DO NOT MODIFY BY HAND");
@@ -342,14 +353,14 @@ class SchemaGenerator {
     return GeneratedFile(name: "schema.dart", contents: buffer.toString());
   }
 
-  void _generateTableClass(StringBuffer buffer, Table table) {
-    final className = table.className;
+  static void _generateTableClass(StringBuffer buffer, Table table) {
+    final className = Pluralize().singular(table.className);
 
     buffer.writeln("class $className {");
 
     // Fields
     for (final column in table.columns) {
-      buffer.writeln("  final ${column.dartType} ${column.name};");
+      buffer.writeln("  final ${column.dartType} ${column.name.toCamelCase(lower: true)};");
     }
 
     buffer.writeln();
@@ -359,9 +370,9 @@ class SchemaGenerator {
     for (var i = 0; i < table.columns.length; i++) {
       final column = table.columns[i];
       if (column.notNull) {
-        buffer.write("required this.${column.name}");
+        buffer.write("required this.${column.name.toCamelCase(lower: true)}");
       } else {
-        buffer.write("this.${column.name}");
+        buffer.write("this.${column.name.toCamelCase(lower: true)}");
       }
       if (i < table.columns.length - 1) buffer.write(", ");
     }
@@ -373,17 +384,19 @@ class SchemaGenerator {
     buffer.writeln("  factory $className.fromMap(Map<String, dynamic> map) {");
     buffer.writeln("    return $className(");
     for (final column in table.columns) {
-      final dartType = PostgresTypeToDart.convert(column.type.name);
+      final dartType = SqlTypeToDart.convert(column.type.name);
       if (dartType == 'DateTime') {
         if (column.notNull) {
-          buffer.writeln("      ${column.name}: DateTime.parse(map['${column.name}'] as String),");
+          buffer.writeln(
+            "      ${column.name.toCamelCase(lower: true)}: DateTime.parse(map['${column.name}'] as String),",
+          );
         } else {
           buffer.writeln(
-            "      ${column.name}: map['${column.name}'] != null ? DateTime.parse(map['${column.name}'] as String) : null,",
+            "      ${column.name.toCamelCase(lower: true)}: map['${column.name}'] != null ? DateTime.parse(map['${column.name}'] as String) : null,",
           );
         }
       } else {
-        buffer.writeln("      ${column.name}: map['${column.name}'] as ${column.dartType},");
+        buffer.writeln("      ${column.name.toCamelCase(lower: true)}: map['${column.name}'] as ${column.dartType},");
       }
     }
     buffer.writeln("    );");
@@ -395,15 +408,15 @@ class SchemaGenerator {
     buffer.writeln("  Map<String, dynamic> toMap() {");
     buffer.writeln("    return {");
     for (final column in table.columns) {
-      final dartType = PostgresTypeToDart.convert(column.type.name);
+      final dartType = SqlTypeToDart.convert(column.type.name);
       if (dartType == 'DateTime') {
         if (column.notNull) {
-          buffer.writeln("      '${column.name}': ${column.name}.toIso8601String(),");
+          buffer.writeln("      '${column.name}': ${column.name.toCamelCase(lower: true)}.toIso8601String(),");
         } else {
-          buffer.writeln("      '${column.name}': ${column.name}?.toIso8601String(),");
+          buffer.writeln("      '${column.name}': ${column.name.toCamelCase(lower: true)}?.toIso8601String(),");
         }
       } else {
-        buffer.writeln("      '${column.name}': ${column.name},");
+        buffer.writeln("      '${column.name}': ${column.name.toCamelCase(lower: true)},");
       }
     }
     buffer.writeln("    };");
@@ -413,8 +426,8 @@ class SchemaGenerator {
   }
 }
 
-class QueriesGenerator {
-  GeneratedFile generate(List<Query> queries, Catalog catalog) {
+abstract class QueriesGenerator {
+  static GeneratedFile generate(List<Query> queries, Catalog catalog) {
     final buffer = StringBuffer();
 
     buffer.writeln("// GENERATED CODE - DO NOT MODIFY BY HAND");
@@ -440,30 +453,26 @@ class QueriesGenerator {
     return GeneratedFile(name: "queries.dart", contents: buffer.toString());
   }
 
-  void _generateQueryMethod(StringBuffer buffer, Query query, Catalog catalog) {
+  static void _generateQueryMethod(StringBuffer buffer, Query query, Catalog catalog) {
     final methodName = query.methodName;
-
-    // Generate SQL constant
-    buffer.writeln("  // ${query.name}");
-    buffer.writeln("  static const String ${methodName}Sql = r'''${query.text}''';");
-    buffer.writeln();
 
     // Determine return type
     String returnType;
     String returnTypeName = '';
     if (query.isExec) {
-      returnType = 'void';
+      returnType = 'Future<void>';
     } else if (query.returnsOne) {
       returnTypeName = _getReturnTypeName(query, catalog);
-      returnType = '$returnTypeName?';
+      returnType = 'Future<$returnTypeName>';
     } else if (query.returnsMany) {
       returnTypeName = _getReturnTypeName(query, catalog);
-      returnType = 'List<$returnTypeName>';
+      returnType = 'Future<List<$returnTypeName>>';
     } else {
-      returnType = 'dynamic';
+      returnType = 'Future<dynamic>';
     }
 
-    // Generate method signature
+    // Generate method signature with comment
+    buffer.writeln("  // ${query.name}");
     buffer.write("  $returnType $methodName(");
 
     // Add parameters
@@ -478,19 +487,22 @@ class QueriesGenerator {
       }
     }
 
-    buffer.writeln(") {");
+    buffer.writeln(") async {");
+
+    // Generate SQL constant inside method
+    buffer.writeln("    const sql = r'''${query.text}''';");
 
     // Generate method body
     if (query.isExec) {
       // Execute query without returning results
       if (paramNames.isEmpty) {
         buffer.writeln("    try {");
-        buffer.writeln("      _db.execute(${methodName}Sql);");
+        buffer.writeln("      _db.execute(sql);");
         buffer.writeln("    } catch (e) {");
         buffer.writeln("      throw SqlcException('Error executing query $methodName', e);");
         buffer.writeln("    }");
       } else {
-        buffer.writeln("    final stmt = _db.prepare(${methodName}Sql);");
+        buffer.writeln("    final stmt = _db.prepare(sql);");
         buffer.writeln("    try {");
         buffer.write("      stmt.execute([");
         buffer.write(paramNames.join(", "));
@@ -505,8 +517,10 @@ class QueriesGenerator {
       // Execute query and return single result
       if (paramNames.isEmpty) {
         buffer.writeln("    try {");
-        buffer.writeln("      final result = _db.select(${methodName}Sql);");
-        buffer.writeln("      if (result.isEmpty) return null;");
+        buffer.writeln("      final result = _db.select(sql);");
+        buffer.writeln("      if (result.isEmpty) {");
+        buffer.writeln("        throw SqlcException('No results found for query $methodName');");
+        buffer.writeln("      }");
         buffer.writeln("      final row = result.first;");
         if (_isTableType(returnTypeName, catalog)) {
           buffer.writeln("      return $returnTypeName.fromMap(row);");
@@ -514,15 +528,18 @@ class QueriesGenerator {
           buffer.writeln("      return row;");
         }
         buffer.writeln("    } catch (e) {");
+        buffer.writeln("      if (e is SqlcException) rethrow;");
         buffer.writeln("      throw SqlcException('Error executing query $methodName', e);");
         buffer.writeln("    }");
       } else {
-        buffer.writeln("    final stmt = _db.prepare(${methodName}Sql);");
+        buffer.writeln("    final stmt = _db.prepare(sql);");
         buffer.writeln("    try {");
         buffer.write("      final result = stmt.select([");
         buffer.write(paramNames.join(", "));
         buffer.writeln("]);");
-        buffer.writeln("      if (result.isEmpty) return null;");
+        buffer.writeln("      if (result.isEmpty) {");
+        buffer.writeln("        throw SqlcException('No results found for query $methodName');");
+        buffer.writeln("      }");
         buffer.writeln("      final row = result.first;");
         if (_isTableType(returnTypeName, catalog)) {
           buffer.writeln("      return $returnTypeName.fromMap(row);");
@@ -530,6 +547,7 @@ class QueriesGenerator {
           buffer.writeln("      return row;");
         }
         buffer.writeln("    } catch (e) {");
+        buffer.writeln("      if (e is SqlcException) rethrow;");
         buffer.writeln("      throw SqlcException('Error executing query $methodName', e);");
         buffer.writeln("    } finally {");
         buffer.writeln("      stmt.close();");
@@ -539,7 +557,7 @@ class QueriesGenerator {
       // Execute query and return multiple results
       if (paramNames.isEmpty) {
         buffer.writeln("    try {");
-        buffer.writeln("      final result = _db.select(${methodName}Sql);");
+        buffer.writeln("      final result = _db.select(sql);");
         if (_isTableType(returnTypeName, catalog)) {
           buffer.writeln("      return result.map((row) => $returnTypeName.fromMap(row)).toList();");
         } else {
@@ -549,7 +567,7 @@ class QueriesGenerator {
         buffer.writeln("      throw SqlcException('Error executing query $methodName', e);");
         buffer.writeln("    }");
       } else {
-        buffer.writeln("    final stmt = _db.prepare(${methodName}Sql);");
+        buffer.writeln("    final stmt = _db.prepare(sql);");
         buffer.writeln("    try {");
         buffer.write("      final result = stmt.select([");
         buffer.write(paramNames.join(", "));
@@ -570,12 +588,12 @@ class QueriesGenerator {
     buffer.writeln("  }");
   }
 
-  bool _isTableType(String typeName, Catalog catalog) {
+  static bool _isTableType(String typeName, Catalog catalog) {
     final tables = catalog.getUserTables();
-    return tables.any((table) => table.className == typeName);
+    return tables.any((table) => Pluralize().singular(table.className) == typeName);
   }
 
-  String _getReturnTypeName(Query query, Catalog catalog) {
+  static String _getReturnTypeName(Query query, Catalog catalog) {
     if (query.columns.isEmpty) {
       return 'Map<String, dynamic>';
     }
@@ -584,14 +602,14 @@ class QueriesGenerator {
     final tables = catalog.getUserTables();
     for (final table in tables) {
       if (_columnsMatchTable(query.columns, table.columns)) {
-        return table.className;
+        return Pluralize().singular(table.className);
       }
     }
 
     return 'Map<String, dynamic>';
   }
 
-  bool _columnsMatchTable(List<Column> queryColumns, List<Column> tableColumns) {
+  static bool _columnsMatchTable(List<Column> queryColumns, List<Column> tableColumns) {
     if (queryColumns.length != tableColumns.length) return false;
 
     for (var i = 0; i < queryColumns.length; i++) {
@@ -616,6 +634,5 @@ String _toPascalCase(String input) {
 
 String _toCamelCase(String input) {
   if (input.isEmpty) return input;
-  final pascal = _toPascalCase(input);
-  return pascal[0].toLowerCase() + pascal.substring(1);
+  return input.toSnakeCase().toCamelCase(lower: true);
 }

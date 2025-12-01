@@ -1,14 +1,36 @@
--- name: GetAuthor :one
-SELECT * FROM authors WHERE id = ? LIMIT 1;
+-- name: InsertUser :one
+INSERT INTO
+    users (
+        name,
+        username,
+        email,
+        password
+    )
+VALUES (?, ?, ?, ?)
+RETURNING
+    *;
 
--- name: ListAuthors :many
-SELECT * FROM authors ORDER BY name;
+-- name: GetUserById :one
+SELECT * FROM users WHERE id = ? LIMIT 1;
 
--- name: CreateAuthor :one
-INSERT INTO authors (name, bio) VALUES (?, ?) RETURNING *;
+-- name: GetUserByUsername :one
+SELECT * FROM users WHERE username = ? LIMIT 1;
 
--- name: UpdateAuthor :exec
-UPDATE authors set name = ?, bio = ? WHERE id = ?;
+-- name: GetUserByEmail :one
+SELECT * FROM users WHERE email = ? LIMIT 1;
 
--- name: DeleteAuthor :exec
-DELETE FROM authors WHERE id = ?;
+-- name: ListUsers :many
+SELECT * FROM users ORDER BY name;
+
+-- name: UpdateUser :exec
+UPDATE users
+set
+    name = ?,
+    username = ?,
+    email = ?,
+    password = ?
+WHERE
+    id = ?;
+
+-- name: DeleteUser :exec
+DELETE FROM users WHERE id = ?;
