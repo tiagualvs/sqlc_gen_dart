@@ -1,4 +1,4 @@
-import 'package:example/db/sqlc.dart';
+import 'package:example/db/sqlc_dart.dart';
 
 void main(List<String> arguments) async {
   final sqlc = Sqlc(SqliteMemory());
