@@ -6,16 +6,11 @@ INSERT INTO
         email,
         password
     )
-VALUES (
-        ?,
-        ?,
-        ?,
-        ?
-    )
+VALUES (?, ?, ?, ?)
 RETURNING
     *;
 
--- name: GetUserById :one   
+-- name: GetUserById :one
 SELECT * FROM users WHERE id = ? LIMIT 1;
 
 -- name: GetUserByUsername :one

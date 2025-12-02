@@ -7,9 +7,9 @@ plugins:
       format: json
 
 sql:
-  - schema: "postgres/schema.sql"
-    queries: "postgres/query.sql"
-    engine: "postgresql"
+  - schema: "sqlite/schema.sql"
+    queries: "sqlite/query.sql"
+    engine: "sqlite"
     codegen:
       - plugin: dart
         out: lib/db

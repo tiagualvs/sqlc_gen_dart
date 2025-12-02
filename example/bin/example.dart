@@ -1,15 +1,23 @@
 import 'package:example/db/sqlc_dart.dart';
 
 void main(List<String> arguments) async {
-  // final sqlc = SqlcDart(SqliteMemory());
-  final sqlc = SqlcDart('postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable');
+  final sqlc = SqlcDart(SqliteMemory());
 
-  final user = await sqlc.queries.insertUser(
+  await sqlc.queries.insertUser(name: 'Tiago', username: 'tiagualvs', email: 'tiago@gmail.com', password: 'Abc@123');
+
+  await sqlc.queries.listUsers();
+
+  await sqlc.queries.getUserByEmail(email: 'tiago@gmail.com');
+
+  await sqlc.queries.getUserById(id: 1);
+
+  await sqlc.queries.updateUser(
+    id: 1,
     name: 'Tiago',
     username: 'tiagualvs',
     email: 'tiago@gmail.com',
     password: 'Abc@123',
   );
 
-  print([user.id, user.name, user.username, user.email, user.password, user.createdAt, user.updatedAt]);
+  await sqlc.queries.deleteUser(id: 1);
 }
