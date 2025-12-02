@@ -1,4 +1,4 @@
--- name: InsertUser :one
+-- name: InsertOneUser :one
 INSERT INTO
     users (
         name,
@@ -10,27 +10,32 @@ VALUES (?, ?, ?, ?)
 RETURNING
     *;
 
--- name: GetUserById :one
+-- name: FindOneUserById :one
 SELECT * FROM users WHERE id = ? LIMIT 1;
 
--- name: GetUserByUsername :one
+-- name: FindOneUserByUsername :one
 SELECT * FROM users WHERE username = ? LIMIT 1;
 
--- name: GetUserByEmail :one
+-- name: FindOneUserByEmail :one
 SELECT * FROM users WHERE email = ? LIMIT 1;
 
--- name: ListUsers :many
-SELECT * FROM users ORDER BY name;
+-- name: FindManyUsers :many
+SELECT * FROM users;
 
--- name: UpdateUser :exec
+-- name: FindPaginatedUsers :many
+SELECT * FROM users
+WHERE id > COALESCE(sqlc.narg('cursor'), 0)
+ORDER BY id ASC;
+
+-- name: UpdateOneUser :exec
 UPDATE users
 set
-    name = coalesce(?, name),
-    username = coalesce(?, username),
-    email = coalesce(?, email),
-    password = coalesce(?, password)
+    name = coalesce(sqlc.narg('name'), name),
+    username = coalesce(sqlc.narg('username'), username),
+    email = coalesce(sqlc.narg('email'), email),
+    password = coalesce(sqlc.narg('password'), password)
 WHERE
-    id = ?;
+    id = ?1;
 
--- name: DeleteUser :exec
+-- name: DeleteOneUser :exec
 DELETE FROM users WHERE id = ?;

@@ -171,7 +171,7 @@ class Queries {
 
   Queries(this._db);
 
-  Future<User> insertUser({required String name, required String username, required String email, required String password}) async {
+  Future<User> insertOneUser({required String name, required String username, required String email, required String password}) async {
     const sql = r'''INSERT INTO
     users (
         name,
@@ -186,7 +186,7 @@ RETURNING
     try {
       final result = stmt.select([name, username, email, password]);
       if (result.isEmpty) {
-        throw SqlcException('No results found for query insertUser');
+        throw SqlcException('No results found for query insertOneUser');
       }
       final row = result.first;
       return User.fromMap(row);
@@ -201,13 +201,13 @@ RETURNING
     }
   }
 
-  Future<User> getUserById({required int id}) async {
+  Future<User> findOneUserById({required int id}) async {
     const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users WHERE id = ? LIMIT 1''';
     final stmt = _db.prepare(sql);
     try {
       final result = stmt.select([id]);
       if (result.isEmpty) {
-        throw SqlcException('No results found for query getUserById');
+        throw SqlcException('No results found for query findOneUserById');
       }
       final row = result.first;
       return User.fromMap(row);
@@ -222,13 +222,13 @@ RETURNING
     }
   }
 
-  Future<User> getUserByUsername({required String username}) async {
+  Future<User> findOneUserByUsername({required String username}) async {
     const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users WHERE username = ? LIMIT 1''';
     final stmt = _db.prepare(sql);
     try {
       final result = stmt.select([username]);
       if (result.isEmpty) {
-        throw SqlcException('No results found for query getUserByUsername');
+        throw SqlcException('No results found for query findOneUserByUsername');
       }
       final row = result.first;
       return User.fromMap(row);
@@ -243,13 +243,13 @@ RETURNING
     }
   }
 
-  Future<User> getUserByEmail({required String email}) async {
+  Future<User> findOneUserByEmail({required String email}) async {
     const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users WHERE email = ? LIMIT 1''';
     final stmt = _db.prepare(sql);
     try {
       final result = stmt.select([email]);
       if (result.isEmpty) {
-        throw SqlcException('No results found for query getUserByEmail');
+        throw SqlcException('No results found for query findOneUserByEmail');
       }
       final row = result.first;
       return User.fromMap(row);
@@ -264,8 +264,8 @@ RETURNING
     }
   }
 
-  Future<List<User>> listUsers() async {
-    const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users ORDER BY name''';
+  Future<List<User>> findManyUsers() async {
+    const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users''';
     try {
       final result = _db.select(sql);
       return result.map((row) => User.fromMap(row)).toList();
@@ -278,18 +278,14 @@ RETURNING
     }
   }
 
-  Future<void> updateUser({required String name, required String username, required String email, required String password, required int id}) async {
-    const sql = r'''UPDATE users
-set
-    name = coalesce(?, name),
-    username = coalesce(?, username),
-    email = coalesce(?, email),
-    password = coalesce(?, password)
-WHERE
-    id = ?''';
+  Future<List<User>> findPaginatedUsers({int? cursor}) async {
+    const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users
+WHERE id > COALESCE(?1, 0)
+ORDER BY id ASC''';
     final stmt = _db.prepare(sql);
     try {
-      stmt.execute([name, username, email, password, id]);
+      final result = stmt.select([cursor]);
+      return result.map((row) => User.fromMap(row)).toList();
     } on SqlcException {
       rethrow;
     } on SqliteException catch (e) {
@@ -301,7 +297,30 @@ WHERE
     }
   }
 
-  Future<void> deleteUser({required int id}) async {
+  Future<void> updateOneUser({required int id, String? name, String? username, String? email, String? password}) async {
+    const sql = r'''UPDATE users
+set
+    name = coalesce(?2, name),
+    username = coalesce(?3, username),
+    email = coalesce(?4, email),
+    password = coalesce(?5, password)
+WHERE
+    id = ?1''';
+    final stmt = _db.prepare(sql);
+    try {
+      stmt.execute([id, name, username, email, password]);
+    } on SqlcException {
+      rethrow;
+    } on SqliteException catch (e) {
+      throw SqlcException(e.runtimeType.toString(), e);
+    } on Exception catch (e) {
+      throw SqlcException(e.runtimeType.toString(), e);
+    } finally {
+      stmt.close();
+    }
+  }
+
+  Future<void> deleteOneUser({required int id}) async {
     const sql = r'''DELETE FROM users WHERE id = ?''';
     final stmt = _db.prepare(sql);
     try {
