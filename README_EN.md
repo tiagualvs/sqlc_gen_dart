@@ -1,37 +1,37 @@
 # sqlc_gen_dart
 
-Um plugin para [SQLC](https://sqlc.dev/) que gera código Dart type-safe a partir de consultas SQL.
+A plugin for [SQLC](https://sqlc.dev/) that generates type-safe Dart code from SQL queries.
 
-**[🇺🇸 English Version](./README_EN.md)**
+**[🇧🇷 Versão em Português](./README.md)**
 
-## 🚀 Características
+## 🚀 Features
 
-- ✅ **Type-safe**: Gera código Dart fortemente tipado a partir de suas consultas SQL
-- ✅ **Suporte a PostgreSQL e SQLite**: Funciona com ambos os bancos de dados
-- ✅ **Geração automática de modelos**: Cria classes Dart para suas tabelas automaticamente
-- ✅ **Queries prontas para uso**: Métodos assíncronos com tratamento de erros incluído
-- ✅ **Gerenciamento de conexão**: Pool de conexões configurável para PostgreSQL
-- ✅ **Exceções customizadas**: `SqlcException` para tratamento de erros consistente
-- ✅ **Suporte a tipos complexos**: UUID, DateTime, tipos nullable e mais
+- ✅ **Type-safe**: Generates strongly-typed Dart code from your SQL queries
+- ✅ **PostgreSQL and SQLite support**: Works with both databases
+- ✅ **Automatic model generation**: Creates Dart classes for your tables automatically
+- ✅ **Ready-to-use queries**: Async methods with built-in error handling
+- ✅ **Connection management**: Configurable connection pool for PostgreSQL
+- ✅ **Custom exceptions**: `SqlcException` for consistent error handling
+- ✅ **Complex type support**: UUID, DateTime, nullable types and more
 
-## 📦 Instalação
+## 📦 Installation
 
-### Pré-requisitos
+### Prerequisites
 
-1. **Dart SDK 3.10.0 ou superior** - [Instalar Dart](https://dart.dev/get-dart)
-2. **SQLC** - [Instalar SQLC](https://docs.sqlc.dev/en/latest/overview/install.html)
+1. **Dart SDK 3.10.0 or higher** - [Install Dart](https://dart.dev/get-dart)
+2. **SQLC** - [Install SQLC](https://docs.sqlc.dev/en/latest/overview/install.html)
 
-### Instalando o Plugin
+### Installing the Plugin
 
 ```bash
 dart install sqlc_gen_dart
 ```
 
-> **Nota**: A partir do Dart 3.10.0, use `dart install` em vez de `dart pub global activate`.
+> **Note**: Starting with Dart 3.10.0, use `dart install` instead of `dart pub global activate`.
 
-## 🔧 Configuração
+## 🔧 Configuration
 
-Crie um arquivo `sqlc.yaml` na raiz do seu projeto:
+Create a `sqlc.yaml` file in your project root:
 
 ### PostgreSQL
 
@@ -73,9 +73,9 @@ sql:
         out: lib/db
 ```
 
-## 📝 Uso
+## 📝 Usage
 
-### 1. Defina seu schema SQL
+### 1. Define your SQL schema
 
 **schema.sql:**
 
@@ -91,7 +91,7 @@ CREATE TABLE users (
 );
 ```
 
-### 2. Escreva suas queries
+### 2. Write your queries
 
 **query.sql:**
 
@@ -119,13 +119,13 @@ WHERE id = $1;
 DELETE FROM users WHERE id = $1;
 ```
 
-### 3. Gere o código
+### 3. Generate the code
 
 ```bash
 sqlc generate
 ```
 
-### 4. Use o código gerado
+### 4. Use the generated code
 
 **PostgreSQL:**
 
@@ -133,39 +133,39 @@ sqlc generate
 import 'package:your_app/db/sqlc_dart.dart';
 
 void main() async {
-  // Conecte ao banco de dados
+  // Connect to database
   final db = SqlcDart('postgresql://user:password@localhost:5432/mydb');
 
-  // Insira um usuário
+  // Insert a user
   final user = await db.queries.insertUser(
-    name: 'João Silva',
-    username: 'joao',
-    email: 'joao@example.com',
+    name: 'John Doe',
+    username: 'johndoe',
+    email: 'john@example.com',
     password: 'hashed_password',
   );
 
-  print('Usuário criado: ${user.name}');
+  print('User created: ${user.name}');
 
-  // Busque um usuário
+  // Get a user
   final foundUser = await db.queries.getUserById(id: user.id);
-  print('Usuário encontrado: ${foundUser.email}');
+  print('User found: ${foundUser.email}');
 
-  // Liste todos os usuários
+  // List all users
   final users = await db.queries.listUsers();
   for (final u in users) {
     print('- ${u.name} (${u.username})');
   }
 
-  // Atualize um usuário
+  // Update a user
   await db.queries.updateUser(
     id: user.id,
-    name: 'João Pedro Silva',
-    username: 'joao',
-    email: 'joao@example.com',
+    name: 'John Smith',
+    username: 'johndoe',
+    email: 'john@example.com',
     password: 'new_hashed_password',
   );
 
-  // Delete um usuário
+  // Delete a user
   await db.queries.deleteUser(id: user.id);
 }
 ```
@@ -176,30 +176,30 @@ void main() async {
 import 'package:your_app/db/sqlc_dart.dart';
 
 void main() async {
-  // Conecte ao banco de dados
+  // Connect to database
   final db = SqlcDart('myapp.db');
 
-  // Use as mesmas queries...
+  // Use the same queries...
   final user = await db.queries.insertUser(
-    name: 'Maria Santos',
-    username: 'maria',
-    email: 'maria@example.com',
+    name: 'Jane Smith',
+    username: 'janesmith',
+    email: 'jane@example.com',
     password: 'hashed_password',
   );
 }
 ```
 
-## 🎯 Código Gerado
+## 🎯 Generated Code
 
-O plugin gera um único arquivo `sqlc_dart.dart` contendo:
+The plugin generates a single `sqlc_dart.dart` file containing:
 
-- **Classes de modelo**: Representam suas tabelas com tipos Dart apropriados
-- **Classe `SqlcDart`**: Gerencia a conexão com o banco de dados
-- **Classe `Queries`**: Contém todos os métodos para executar suas queries
-- **Classe `SqlcException`**: Para tratamento de erros consistente
-- **Tipos customizados**: Como `Uuid` com validação
+- **Model classes**: Represent your tables with appropriate Dart types
+- **`SqlcDart` class**: Manages database connection
+- **`Queries` class**: Contains all methods to execute your queries
+- **`SqlcException` class**: For consistent error handling
+- **Custom types**: Like `Uuid` with validation
 
-### Exemplo de classe gerada:
+### Example of generated class:
 
 ```dart
 class User {
@@ -226,16 +226,16 @@ class User {
 }
 ```
 
-## ⚙️ Configuração Avançada
+## ⚙️ Advanced Configuration
 
-### Pool de Conexões (PostgreSQL)
+### Connection Pool (PostgreSQL)
 
-O plugin configura automaticamente um pool de conexões com valores padrão:
+The plugin automatically configures a connection pool with default values:
 
 - `max_connection_count`: 10
-- `max_connection_age`: 3600 segundos
+- `max_connection_age`: 3600 seconds
 
-Você pode personalizar via URL de conexão:
+You can customize via connection URL:
 
 ```dart
 final db = SqlcDart(
@@ -243,34 +243,34 @@ final db = SqlcDart(
 );
 ```
 
-## 🛠️ Dependências
+## 🛠️ Dependencies
 
-O código gerado requer as seguintes dependências no seu `pubspec.yaml`:
+The generated code requires the following dependencies in your `pubspec.yaml`:
 
-**Para PostgreSQL:**
+**For PostgreSQL:**
 
 ```yaml
 dependencies:
   postgres: ^3.0.0
 ```
 
-**Para SQLite:**
+**For SQLite:**
 
 ```yaml
 dependencies:
   sqlite3: ^2.0.0
 ```
 
-## 📚 Recursos Adicionais
+## 📚 Additional Resources
 
-- [Documentação SQLC](https://docs.sqlc.dev/)
-- [Exemplos](./example)
+- [SQLC Documentation](https://docs.sqlc.dev/)
+- [Examples](./example)
 - [Changelog](./CHANGELOG.md)
 
-## 🤝 Contribuindo
+## 🤝 Contributing
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
+Contributions are welcome! Feel free to open issues or pull requests.
 
-## 📄 Licença
+## 📄 License
 
-Este projeto está sob a licença MIT.
+This project is licensed under the MIT License.
