@@ -278,13 +278,14 @@ RETURNING
     }
   }
 
-  Future<List<User>> findPaginatedUsers({int? cursor}) async {
+  Future<List<User>> findPaginatedUsers({int? cursor, int? limit}) async {
     const sql = r'''SELECT id, name, username, email, password, created_at, updated_at FROM users
 WHERE id > COALESCE(?1, 0)
-ORDER BY id ASC''';
+ORDER BY id ASC
+LIMIT ?2''';
     final stmt = _db.prepare(sql);
     try {
-      final result = stmt.select([cursor]);
+      final result = stmt.select([cursor, limit]);
       return result.map((row) => User.fromMap(row)).toList();
     } on SqlcException {
       rethrow;

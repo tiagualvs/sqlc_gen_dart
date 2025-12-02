@@ -25,7 +25,8 @@ SELECT * FROM users;
 -- name: FindPaginatedUsers :many
 SELECT * FROM users
 WHERE id > COALESCE(sqlc.narg('cursor'), 0)
-ORDER BY id ASC;
+ORDER BY id ASC
+LIMIT sqlc.narg('limit');
 
 -- name: UpdateOneUser :exec
 UPDATE users
