@@ -1,9 +1,9 @@
-name: sqlc_dart
+name: sqlc_gen_dart
 description: A plugin for SQLC that generates Dart code from SQL queries.
 version: 1.0.0
 
 executables:
-  sqlc_dart: sqlc_dart
+  sqlc-gen-dart: sqlc_gen_dart
 
 environment:
   sdk: ^3.10.0

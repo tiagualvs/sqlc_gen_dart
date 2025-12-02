@@ -6,11 +6,16 @@ INSERT INTO
         email,
         password
     )
-VALUES (?, ?, ?, ?)
+VALUES (
+        ?,
+        ?,
+        ?,
+        ?
+    )
 RETURNING
     *;
 
--- name: GetUserById :one
+-- name: GetUserById :one   
 SELECT * FROM users WHERE id = ? LIMIT 1;
 
 -- name: GetUserByUsername :one
@@ -25,10 +30,10 @@ SELECT * FROM users ORDER BY name;
 -- name: UpdateUser :exec
 UPDATE users
 set
-    name = ?,
-    username = ?,
-    email = ?,
-    password = ?
+    name = coalesce(?, name),
+    username = coalesce(?, username),
+    email = coalesce(?, email),
+    password = coalesce(?, password)
 WHERE
     id = ?;
 

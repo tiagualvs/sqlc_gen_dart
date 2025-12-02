@@ -3,13 +3,13 @@ version: "2"
 plugins:
   - name: dart
     process:
-      cmd: sqlc_dart
+      cmd: sqlc-gen-dart
       format: json
 
 sql:
-  - schema: "schema.sql"
-    queries: "query.sql"
-    engine: "sqlite"
+  - schema: "postgres/schema.sql"
+    queries: "postgres/query.sql"
+    engine: "postgresql"
     codegen:
       - plugin: dart
         out: lib/db

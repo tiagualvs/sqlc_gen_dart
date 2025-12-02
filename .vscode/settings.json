@@ -1,4 +1,7 @@
 {
     "dart.flutterSdkPath": "C:\\Users\\tiago\\.puro\\envs\\stb\\flutter",
-    "dart.sdkPath": "C:\\Users\\tiago\\.puro\\envs\\stb\\flutter\\bin\\cache\\dart-sdk"
+    "dart.sdkPath": "C:\\Users\\tiago\\.puro\\envs\\stb\\flutter\\bin\\cache\\dart-sdk",
+    "[sql]": {
+        "editor.formatOnSave": false
+    }
 }
