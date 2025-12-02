@@ -1,6 +1,14 @@
 name: sqlc_gen_dart
 description: A plugin for SQLC that generates Dart code from SQL queries.
 version: 1.0.0
+repository: https://github.com/tiagualvs/sqlc_gen_dart
+
+topics:
+  - orm
+  - sql
+  - database
+  - sqlite
+  - postgresql
 
 executables:
   sqlc-gen-dart: sqlc_gen_dart
